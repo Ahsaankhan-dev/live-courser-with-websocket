@@ -1,0 +1,19 @@
+
+> task@0.1.0 dev
+> next dev
+
+▲ Next.js 16.3.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.29:3000
+- Environments: .env.local
+✓ Ready in 616ms
+⚠ Warning: Next.js ignored package-lock.json in /home/muhammad-ahsaan because it is outside the current Git repository (/home/muhammad-ahsaan/my work/next JS/task/Frontend/task).
+ To use this directory, set `turbopack.root` in your Next.js config.
+
+✓ Running next.config.mjs took 23ms
+
+⨯ Error: Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.
+    at ignore-listed frames {
+  digest: '433943055'
+}
+ GET /login 500 in 1219ms (next.js: 304ms, application-code: 915ms)

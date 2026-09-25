@@ -1,0 +1,58 @@
+
+> task@0.1.0 dev
+> next dev
+
+▲ Next.js 16.3.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.29:3000
+- Environments: .env.local
+✓ Ready in 912ms
+⚠ Warning: Next.js ignored package-lock.json in /home/muhammad-ahsaan because it is outside the current Git repository (/home/muhammad-ahsaan/my work/next JS/task/Frontend/task).
+ To use this directory, set `turbopack.root` in your Next.js config.
+
+✓ Running next.config.mjs took 23ms
+
+ GET / 200 in 653ms (next.js: 330ms, application-code: 323ms)
+ GET /login 200 in 128ms (next.js: 24ms, application-code: 104ms)
+ GET /register 200 in 779ms (next.js: 710ms, application-code: 68ms)
+ GET / 200 in 50ms (next.js: 3ms, application-code: 47ms)
+ GET /login 200 in 54ms (next.js: 3ms, application-code: 51ms)
+ GET /register 200 in 52ms (next.js: 4ms, application-code: 48ms)
+ GET /dashboard 200 in 437ms (next.js: 354ms, application-code: 83ms)
+ POST /api/auth/register 404 in 242ms (next.js: 185ms, application-code: 57ms)
+ GET / 200 in 86ms (next.js: 16ms, application-code: 69ms)
+ GET /login 200 in 66ms (next.js: 4ms, application-code: 63ms)
+ POST /api/auth/register 404 in 111ms (next.js: 22ms, application-code: 89ms)
+ POST /login 200 in 53ms (next.js: 3ms, application-code: 50ms)
+ POST /register 200 in 51ms (next.js: 3ms, application-code: 48ms)
+ GET /dashboard 200 in 51ms (next.js: 3ms, application-code: 48ms)
+ POST /api/auth/register 404 in 48ms (next.js: 4ms, application-code: 44ms)
+⨯ ./app/(auth)/layout.js:2:1
+Error: Module not found: Can't resolve './globals.css'
+  [90m1 |[0m [36mimport[0m { [33mGeist[0m, [33mGeist_Mono[0m } [36mfrom[0m [32m"next/font/google"[0m;
+[31m[1m>[0m [90m2 |[0m [36mimport[0m [32m"./globals.css"[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m3 |[0m [36mimport[0m { [33mAuthLayoutClient[0m } [36mfrom[0m [32m"./AuthLayoutClient"[0m;
+  [90m4 |[0m
+  [90m5 |[0m [36mconst[0m geistSans = [33mGeist[0m({ variable: [32m"--font-geist-sans"[0m, subsets: [[32m"latin"[0m] });
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./app/(auth)/layout.js:2:1
+Error: Module not found: Can't resolve './globals.css'
+  [90m1 |[0m [36mimport[0m { [33mGeist[0m, [33mGeist_Mono[0m } [36mfrom[0m [32m"next/font/google"[0m;
+[31m[1m>[0m [90m2 |[0m [36mimport[0m [32m"./globals.css"[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m3 |[0m [36mimport[0m { [33mAuthLayoutClient[0m } [36mfrom[0m [32m"./AuthLayoutClient"[0m;
+  [90m4 |[0m
+  [90m5 |[0m [36mconst[0m geistSans = [33mGeist[0m({ variable: [32m"--font-geist-sans"[0m, subsets: [[32m"latin"[0m] });
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[?25h

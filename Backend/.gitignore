@@ -1,0 +1,11 @@
+# dependencies
+node_modules/
+
+# env file (secrets — JWT_SECRET, DB URI, etc.)
+.env
+
+# misc
+.DS_Store
+
+# debug logs
+npm-debug.log*

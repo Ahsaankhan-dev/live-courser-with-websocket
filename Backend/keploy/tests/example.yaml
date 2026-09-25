@@ -1,0 +1,43 @@
+---
+name: Health_Check
+description: Verify the API server is running
+steps:
+  - name: Check health endpoint
+    method: GET
+    url: /api/health
+    assert:
+      - type: status_code
+        expected_string: "200"
+---
+name: Example_CRUD_Flow
+description: Create, read, and delete a resource
+steps:
+  - name: Create resource
+    method: POST
+    url: /api/resources
+    headers:
+      Content-Type: application/json
+    body: '{"name":"test-resource","value":"hello"}'
+    extract:
+      resource_id: $.id
+    assert:
+      - type: status_code
+        expected_string: "201"
+      - type: json_equal
+        key: $.name
+        expected_string: '"test-resource"'
+  - name: Get resource
+    method: GET
+    url: /api/resources/{{resource_id}}
+    assert:
+      - type: status_code
+        expected_string: "200"
+      - type: json_equal
+        key: $.id
+        expected_string: "{{resource_id}}"
+  - name: Delete resource
+    method: DELETE
+    url: /api/resources/{{resource_id}}
+    assert:
+      - type: status_code
+        expected_string: "204"

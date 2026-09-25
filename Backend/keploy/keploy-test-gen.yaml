@@ -1,0 +1,12 @@
+# keploy test-gen configuration (EXAMPLE TEMPLATE)
+# All settings are passed via CLI flags. This file serves as a reference.
+version: "2.0"
+
+# Base URL of your API server
+base_url: "http://localhost:8080"
+
+# Test execution settings
+test:
+  timeout: 30          # per-request timeout in seconds
+  rate_limit: 0        # max requests per second (0 = unlimited)
+  flaky_runs: 2        # re-run failures for flaky detection
