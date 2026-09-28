@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useReducer, useEffect } from 'react';
+import { authApi } from '../lib/api/auth.api';
 
 export const AuthContext = createContext();
 
@@ -72,17 +73,11 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
-          credentials: 'include',
+        const result = await authApi.getCurrentUser();
+        dispatch({
+          type: 'SET_USER',
+          payload: result?.data?.user ?? result?.data?.data ?? result?.data ?? result?.user ?? result,
         });
-
-        if (response.ok) {
-          const result = await response.json();
-          // Backend returns { StatusCode, message, data: { id, name, email } }
-          dispatch({ type: 'SET_USER', payload: result.data || result });
-        } else {
-          dispatch({ type: 'SET_USER', payload: null });
-        }
       } catch (err) {
         console.error('Session check failed:', err);
         dispatch({ type: 'SET_USER', payload: null });

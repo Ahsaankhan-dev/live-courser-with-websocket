@@ -4,6 +4,13 @@ import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { authApi } from '../lib/api/auth.api';
 
+function getUser(result) {
+  // The API client returns the response body; support both a direct user and
+  // the backend's { data: user } / { data: { user } } response envelopes.
+  const body = result?.data ?? result;
+  return body?.user ?? body;
+}
+
 export function useAuth() {
   const context = useContext(AuthContext);
 
@@ -15,8 +22,8 @@ export function useAuth() {
     context.dispatch({ type: 'SET_LOADING', payload: true });
     try {
       const response = await authApi.login(email, password);
-      context.dispatch({ type: 'LOGIN', payload: response.data.user });
-      return response.data;
+      context.dispatch({ type: 'LOGIN', payload: getUser(response) });
+      return response;
     } catch (error) {
       const message = error.response?.data?.message || error.message || 'Login failed';
       context.dispatch({ type: 'SET_ERROR', payload: message });
@@ -28,8 +35,8 @@ export function useAuth() {
     context.dispatch({ type: 'SET_LOADING', payload: true });
     try {
       const response = await authApi.register(name, email, password);
-      context.dispatch({ type: 'REGISTER', payload: response.data.user });
-      return response.data;
+      context.dispatch({ type: 'REGISTER', payload: getUser(response) });
+      return response;
     } catch (error) {
       const message = error.response?.data?.message || error.message || 'Registration failed';
       context.dispatch({ type: 'SET_ERROR', payload: message });
@@ -50,8 +57,9 @@ export function useAuth() {
   const checkSession = async () => {
     try {
       const response = await authApi.getCurrentUser();
-      context.dispatch({ type: 'SET_USER', payload: response.data });
-      return response.data;
+      const user = getUser(response);
+      context.dispatch({ type: 'SET_USER', payload: user });
+      return user;
     } catch (err) {
       console.error('Session check failed:', err);
       context.dispatch({ type: 'SET_USER', payload: null });

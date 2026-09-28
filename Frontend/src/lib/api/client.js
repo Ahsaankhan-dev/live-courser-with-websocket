@@ -25,27 +25,24 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const requestUrl = originalRequest?.url || '';
+    const isAuthAction = /\/api\/auth\/(login|register|refresh-token)(?:\?|$)/.test(requestUrl);
 
     // Handle token expiration
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !isAuthAction) {
       originalRequest._retry = true;
 
       try {
         // Try to refresh the token
-        await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh-token`,
-          {},
-          { withCredentials: true }
-        );
+        await apiClient.post('/api/auth/refresh-token');
 
         // Retry the original request
         return apiClient(originalRequest);
-      } catch (refreshError) {
-        // Refresh failed, redirect to login
-        if (typeof window !== 'undefined') {
-          window.location.href = '/login';
-        }
-        return Promise.reject(refreshError);
+      } catch {
+        // Let the calling page decide how to handle an expired session. The
+        // auth provider also calls /me on public pages, where forced redirects
+        // would incorrectly send signed-out visitors to the login screen.
+        return Promise.reject(error);
       }
     }
 

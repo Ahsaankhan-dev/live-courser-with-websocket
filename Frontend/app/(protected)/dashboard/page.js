@@ -1,9 +1,7 @@
 'use client';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function DashboardPage() {
-  const router = useRouter();
   const { user, logout } = useAuth();
 
   return (
