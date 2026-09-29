@@ -11,25 +11,27 @@ console.log('PORT:', process.env.PORT);
 
 const Port = process.env.PORT || 5000
 
-const wsServer = new WebSocketServer({server: app});
-wsServer.on('connection', (socket) => {
-    console.log('WebSocket client connected');
-
-    socket.on('message', (message) => {
-        console.log(`Received message: ${message}`);
-        // Handle incoming messages from clients here
-    });
-
-    socket.on('close', () => {
-        console.log('WebSocket client disconnected');
-    });
-});
 const ServerStart = async () => {
     await DbConnect();
     try {
-        await app.listen(Port, () => {
+        // app.listen() creates and starts the HTTP server; keep its returned
+        // server so WebSocket can share the same port.
+        const server = app.listen(Port, () => {
             console.log(`Server is running on port ${Port}`)
         })
+
+        const wsServer = new WebSocketServer({ server });
+        wsServer.on('connection', (socket) => {
+            console.log('WebSocket client connected');
+
+            socket.on('message', (message) => {
+                console.log(`Received message: ${message}`);
+            });
+
+            socket.on('close', () => {
+                console.log('WebSocket client disconnected');
+            });
+        });
     } catch (error) {
         console.error(`Error starting server: ${error}`)
     }

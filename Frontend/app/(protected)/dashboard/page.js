@@ -1,8 +1,10 @@
 'use client';
 import { useAuth } from '@/hooks/useAuth';
+import { useWebSocket } from '@/hooks/useWebSocket';
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
+  const socketStatus = useWebSocket();
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -18,6 +20,9 @@ export default function DashboardPage() {
         
         <div className="p-6 bg-white rounded-lg border">
           <h2 className="text-xl font-bold mb-4">Actions</h2>
+          <p className="text-sm text-gray-600 mb-4" role="status">
+            WebSocket: {socketStatus}
+          </p>
           <button onClick={() => logout()} className="px-4 py-2 bg-red-600 text-white rounded">
             Logout
           </button>
