@@ -22,6 +22,10 @@ const UserService = () => {
         return user
     }
 
+    const getUsers = async () => {
+        return User.find({}, { name: 1 }).sort({ name: 1 }).lean()
+    }
+
     const createUser = async (name, email, password) => {
         const validationError = await ValidateInput(name, email, password);
         if (validationError) return validationError;
@@ -145,6 +149,7 @@ const UserService = () => {
         loginUser,
         userByEmail,
         userById,
+        getUsers,
         logoutUser,
         refreshAccessToken
     }

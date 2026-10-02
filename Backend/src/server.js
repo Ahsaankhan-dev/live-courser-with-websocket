@@ -1,41 +1,48 @@
-import app from "./app.js"
+import app from "./app.js";
 import DbConnect from "./config/DBConnect.js";
 import dotenv from "dotenv";
 import path from "path";
-import {WebSocketServer} from "ws";
+import { WebSocketServer } from "ws";
+import VerifyWebSocketClient from "./middleware/websocket.middleware.js";
+import PresenceService from "./service/presence.service.js";
 
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
-console.log('MONGODB_URI:', process.env.MONGODB_URI);
-console.log('PORT:', process.env.PORT);
-
-const Port = process.env.PORT || 5000
+const Port = process.env.PORT || 5000;
+const Presence = PresenceService();
 
 const ServerStart = async () => {
     await DbConnect();
-    try {
-        // app.listen() creates and starts the HTTP server; keep its returned
-        // server so WebSocket can share the same port.
-        const server = app.listen(Port, () => {
-            console.log(`Server is running on port ${Port}`)
-        })
 
-        const wsServer = new WebSocketServer({ server });
-        wsServer.on('connection', (socket) => {
-            console.log('WebSocket client connected');
+    const server = app.listen(Port, () => {
+        console.log(`Server is running on port ${Port}`);
+    });
 
-            socket.on('message', (message) => {
-                console.log(`Received message: ${message}`);
-            });
+    const wsServer = new WebSocketServer({
+        server,
+        verifyClient: VerifyWebSocketClient,
+    });
+  
+    wsServer.on("connection", (socket, request) => {
+        const userId = request.authUserId;
+        
 
-            socket.on('close', () => {
-                console.log('WebSocket client disconnected');
-            });
+        Presence.UserConnected(wsServer, socket, userId);
+
+        socket.on("close", () => {
+            Presence.UserDisconnected(wsServer, socket, userId);
         });
-    } catch (error) {
-        console.error(`Error starting server: ${error}`)
-    }
 
-}
+        socket.on("error", (error) => {
+            console.error(`WebSocket error for ${userId}:`, error.message);
+        });
+    });
 
-ServerStart();
+    wsServer.on("error", (error) => {
+        console.error("WebSocket server error:", error.message);
+    });
+};
+
+ServerStart().catch((error) => {
+    console.error("Error starting server:", error.message);
+});

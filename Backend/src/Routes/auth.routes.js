@@ -15,6 +15,7 @@ router.post("/refresh-token", controller.RefreshToken)
 // Protected routes
 router.post("/logout", authMiddleware, controller.LogoutUser)
 router.get("/me", authMiddleware, controller.GetCurrentUser)
+router.get("/users", authMiddleware, controller.ListUsers)
 
 // Legacy routes (keep for backward compatibility)
 router.get("/getuser/:id", controller.getUser)

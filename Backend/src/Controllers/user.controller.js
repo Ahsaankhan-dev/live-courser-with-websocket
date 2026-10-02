@@ -160,6 +160,20 @@ const AuthController = () => {
         }
     }
 
+    const ListUsers = async (req, res) => {
+        try {
+            const users = await UserService().getUsers()
+            const otherUsers = users
+                .filter((user) => user._id.toString() !== req.user?.userId)
+                .map((user) => ({ id: user._id, name: user.name }))
+
+            return UserUtils().SuccessResponse(res, 200, "Users retrieved successfully", otherUsers)
+        } catch (error) {
+            console.error("Error retrieving users:", error)
+            return UserUtils().ErrorResponse(res, 500, "Internal server error", error.message)
+        }
+    }
+
     const ChangeName = async (req, res) => {
         const { id } = req.params
         const { name } = req.body
@@ -238,6 +252,7 @@ const AuthController = () => {
         LogoutUser,
         RefreshToken,
         GetCurrentUser,
+        ListUsers,
         getUser,
         ChangeName,
         ChangePassword

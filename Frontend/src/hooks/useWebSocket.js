@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 
 export function useWebSocket() {
   const [status, setStatus] = useState('connecting');
+  const [onlineUserIds, setOnlineUserIds] = useState([]);
 
   useEffect(() => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
@@ -36,7 +37,16 @@ export function useWebSocket() {
     };
 
     socket.onmessage = (event) => {
-      console.info('[WebSocket] Message received:', event.data);
+      try {
+        const message = JSON.parse(event.data);
+        if (message.type === 'presence' && Array.isArray(message.onlineUserIds)) {
+          if (active) setOnlineUserIds(message.onlineUserIds.map(String));
+          return;
+        }
+        console.info('[WebSocket] Message received:', message);
+      } catch (error) {
+        console.error('[WebSocket] Could not parse server message:', error, event.data);
+      }
     };
 
     socket.onerror = (event) => {
@@ -50,7 +60,10 @@ export function useWebSocket() {
         reason: event.reason || '(no reason provided)',
         wasClean: event.wasClean,
       });
-      if (active) setStatus('disconnected');
+      if (active) {
+        setStatus('disconnected');
+        setOnlineUserIds([]);
+      }
     };
 
     return () => {
@@ -60,5 +73,5 @@ export function useWebSocket() {
     };
   }, []);
 
-  return status;
+  return { status, onlineUserIds };
 }

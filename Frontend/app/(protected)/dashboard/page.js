@@ -1,32 +1,36 @@
 'use client';
+
 import { useAuth } from '@/hooks/useAuth';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import { useDashboardUsers } from '@/hooks/useDashboardUsers';
+import PeopleSidebar from '@/components/dashboard/PeopleSidebar';
+import DashboardOverview from '@/components/dashboard/DashboardOverview';
 
 export default function DashboardPage() {
-  const { user, logout } = useAuth();
-  const socketStatus = useWebSocket();
+  const { user } = useAuth();
+  const { status, onlineUserIds } = useWebSocket();
+  const { users, loading, error } = useDashboardUsers();
+
+  const onlineCount = users.filter((person) =>
+    onlineUserIds.includes(String(person.id)),
+  ).length;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mb-4">Dashboard</h1>
-      <p className="text-gray-600 mb-8">Welcome back, {user?.name}!</p>
-      
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="p-6 bg-white rounded-lg border">
-          <h2 className="text-xl font-bold mb-4">Profile</h2>
-          <p><strong>Name:</strong> {user?.name}</p>
-          <p><strong>Email:</strong> {user?.email}</p>
-        </div>
-        
-        <div className="p-6 bg-white rounded-lg border">
-          <h2 className="text-xl font-bold mb-4">Actions</h2>
-          <p className="text-sm text-gray-600 mb-4" role="status">
-            WebSocket: {socketStatus}
-          </p>
-          <button onClick={() => logout()} className="px-4 py-2 bg-red-600 text-white rounded">
-            Logout
-          </button>
-        </div>
+    <div className="min-h-[calc(100vh-72px)] bg-[#f5f4f0] font-sans text-[#282821]">
+      <div className="mx-auto grid min-h-[calc(100vh-72px)] max-w-[1440px] lg:grid-cols-[290px_minmax(0,1fr)]">
+        <PeopleSidebar
+          user={user}
+          users={users}
+          loading={loading}
+          error={error}
+          socketStatus={status}
+          onlineUserIds={onlineUserIds}
+        />
+        <DashboardOverview
+          user={user}
+          onlineCount={onlineCount}
+          socketStatus={status}
+        />
       </div>
     </div>
   );

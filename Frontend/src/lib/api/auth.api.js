@@ -32,6 +32,12 @@ export const authApi = {
     return response.data;
   },
 
+  // List other registered users for the dashboard people sidebar
+  getUsers: async () => {
+    const response = await apiClient.get('/api/auth/users');
+    return response.data;
+  },
+
   // Refresh access token
   refreshToken: async () => {
     const response = await apiClient.post('/api/auth/refresh-token');
