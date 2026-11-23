@@ -10,7 +10,8 @@ export function useDashboardUsers() {
     const loadUsers = async () => {
       try {
         const response = await authApi.getUsers();
-        setUsers(Array.isArray(response?.data) ? response.data : []);
+        const list = Array.isArray(response?.data) ? response.data : [];
+        setUsers(list.map((u) => ({ ...u, id: String(u.id ?? u._id) })));
       } catch (error) {
         console.error('[Dashboard] Could not load users:', error);
         setError('Could not load the people list. Please refresh the page.');

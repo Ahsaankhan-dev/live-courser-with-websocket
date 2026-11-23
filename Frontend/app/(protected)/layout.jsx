@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { Navbar } from '@/components/layout/Navbar';
+import { WebSocketProvider } from '@/hooks/useWebSocket';
 
 export default function ProtectedLayout({ children }) {
   const router = useRouter();
@@ -29,7 +30,7 @@ export default function ProtectedLayout({ children }) {
   return (
     <>
       <Navbar />
-      <main className="flex-1">{children}</main>
+      <WebSocketProvider>{children}</WebSocketProvider>
     </>
   );
 }

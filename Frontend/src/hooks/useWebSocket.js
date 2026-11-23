@@ -1,35 +1,47 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
-export function useWebSocket() {
-  const [status, setStatus] = useState('connecting');
+const ConnectionContext = createContext(null);
+const CursorsContext = createContext(null);
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const SOCKET_CONFIG = (() => {
+  try {
+    const url = new URL(API_URL);
+    url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    return { url: url.toString(), error: null };
+  } catch (error) {
+    return { url: null, error };
+  }
+})();
+
+export function WebSocketProvider({ children }) {
+  const [status, setStatus] = useState(
+    SOCKET_CONFIG.url ? 'connecting' : 'unavailable'
+  );
   const [onlineUserIds, setOnlineUserIds] = useState([]);
+  const [cursors, setCursors] = useState({});
+  const wsRef = useRef(null);
 
   useEffect(() => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-    let socketUrl;
-
-    try {
-      socketUrl = new URL(apiUrl);
-      socketUrl.protocol = socketUrl.protocol === 'https:' ? 'wss:' : 'ws:';
-    } catch (error) {
-      console.error('[WebSocket] Invalid backend URL:', apiUrl, error);
-      setStatus('unavailable');
-      return undefined;
+    if (!SOCKET_CONFIG.url) {
+      console.error('[WebSocket] Invalid backend URL:', API_URL, SOCKET_CONFIG.error);
+      return;
     }
 
-    let socket;
     let active = true;
-
-    try {
-      console.info('[WebSocket] Connecting to', socketUrl.toString());
-      socket = new WebSocket(socketUrl.toString());
-    } catch (error) {
-      console.error('[WebSocket] Could not create connection:', error);
-      setStatus('unavailable');
-      return undefined;
-    }
+    console.info('[WebSocket] Connecting to', SOCKET_CONFIG.url);
+    const socket = new WebSocket(SOCKET_CONFIG.url);
+    wsRef.current = socket;
 
     socket.onopen = () => {
       console.info('[WebSocket] Connected');
@@ -39,18 +51,49 @@ export function useWebSocket() {
     socket.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
-        if (message.type === 'presence' && Array.isArray(message.onlineUserIds)) {
-          if (active) setOnlineUserIds(message.onlineUserIds.map(String));
-          return;
+
+        if (!active) return;
+
+        switch (message.type) {
+          case 'presence':
+            if (Array.isArray(message.onlineUserIds)) {
+              setOnlineUserIds(message.onlineUserIds.map(String));
+            }
+            break;
+
+          case 'cursor': {
+            const { userId, name, X, Y } = message;
+            if (
+              typeof userId === 'string' &&
+              typeof name === 'string' &&
+              Number.isFinite(X) &&
+              Number.isFinite(Y)
+            ) {
+              setCursors((prev) => ({ ...prev, [userId]: { x: X, y: Y, name } }));
+            }
+            break;
+          }
+
+          case 'cursor-leave':
+            if (typeof message.userId === 'string') {
+              setCursors((prev) => {
+                const next = { ...prev };
+                delete next[message.userId];
+                return next;
+              });
+            }
+            break;
+
+          default:
+            console.info('[WebSocket] Message received:', message);
         }
-        console.info('[WebSocket] Message received:', message);
       } catch (error) {
         console.error('[WebSocket] Could not parse server message:', error, event.data);
       }
     };
 
     socket.onerror = (event) => {
-      console.log('[WebSocket] Connection error:', event);
+      console.error('[WebSocket] Connection error:', event);
       if (active) setStatus('unavailable');
     };
 
@@ -63,6 +106,7 @@ export function useWebSocket() {
       if (active) {
         setStatus('disconnected');
         setOnlineUserIds([]);
+        setCursors({});
       }
     };
 
@@ -70,8 +114,41 @@ export function useWebSocket() {
       active = false;
       console.info('[WebSocket] Closing connection (component cleanup)');
       socket.close();
+      wsRef.current = null;
     };
   }, []);
 
-  return { status, onlineUserIds };
+  const send = useCallback((data) => {
+    const ws = wsRef.current;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify(data));
+    }
+  }, []);
+
+  // Keep cursor updates separate so mouse movement does not re-render consumers
+  // of the connection state.
+  const connection = useMemo(
+    () => ({ status, onlineUserIds, send }),
+    [status, onlineUserIds, send]
+  );
+
+  return (
+    <ConnectionContext.Provider value={connection}>
+      <CursorsContext.Provider value={cursors}>
+        {children}
+      </CursorsContext.Provider>
+    </ConnectionContext.Provider>
+  );
+}
+
+export function useWebSocket() {
+  const ctx = useContext(ConnectionContext);
+  if (!ctx) throw new Error('useWebSocket must be used inside <WebSocketProvider>');
+  return ctx;
+}
+
+export function useCursors() {
+  const ctx = useContext(CursorsContext);
+  if (!ctx) throw new Error('useCursors must be used inside <WebSocketProvider>');
+  return ctx;
 }

@@ -76,7 +76,7 @@ export function AuthProvider({ children }) {
         const result = await authApi.getCurrentUser();
         dispatch({
           type: 'SET_USER',
-          payload: result?.data?.user ?? result?.data?.data ?? result?.data ?? result?.user ?? result,
+          payload: result.data ,
         });
       } catch (err) {
         console.error('Session check failed:', err);

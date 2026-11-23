@@ -5,6 +5,7 @@ import { useWebSocket } from '@/hooks/useWebSocket';
 import { useDashboardUsers } from '@/hooks/useDashboardUsers';
 import PeopleSidebar from '@/components/dashboard/PeopleSidebar';
 import DashboardOverview from '@/components/dashboard/DashboardOverview';
+import LiveCursors from '@/components/dashboard/mouse';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -17,7 +18,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-[calc(100vh-72px)] bg-[#f5f4f0] font-sans text-[#282821]">
-      <div className="mx-auto grid min-h-[calc(100vh-72px)] max-w-[1440px] lg:grid-cols-[290px_minmax(0,1fr)]">
+      <div className="mx-auto grid min-h-[calc(100vh-72px)] max-w-360 lg:grid-cols-[290px_minmax(0,1fr)]">
         <PeopleSidebar
           user={user}
           users={users}
@@ -26,11 +27,8 @@ export default function DashboardPage() {
           socketStatus={status}
           onlineUserIds={onlineUserIds}
         />
-        <DashboardOverview
-          user={user}
-          onlineCount={onlineCount}
-          socketStatus={status}
-        />
+        <DashboardOverview user={user} onlineCount={onlineCount} socketStatus={status} />
+        <LiveCursors />
       </div>
     </div>
   );
