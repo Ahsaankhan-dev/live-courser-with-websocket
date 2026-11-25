@@ -47,12 +47,14 @@ const PresenceService = () => {
 
     const UserDisconnected = (wsServer, socket, userId) => {
         const userConnections = OnlineConnections.get(userId);
+        let lastConnection = false;
 
         if (userConnections) {
             userConnections.delete(socket);
 
             if (userConnections.size === 0) {
                 OnlineConnections.delete(userId);
+                lastConnection = true;
 
                 // user ka koi tab nahi bacha, cursor hata do
                 const leaveMessage = JSON.stringify({ type: "cursor-leave", userId });
@@ -64,6 +66,7 @@ const PresenceService = () => {
 
         console.log(`WebSocket disconnected: ${userId}`);
         SendOnlineUsers(wsServer);
+        return lastConnection;
     };
 
     const BroadcastCursor = (wsServer, senderSocket, cursorData) => {

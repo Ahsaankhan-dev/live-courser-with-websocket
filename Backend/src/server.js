@@ -2,14 +2,16 @@ import app from "./app.js";
 import DbConnect from "./config/DBConnect.js";
 import dotenv from "dotenv";
 import path from "path";
-import { WebSocketServer } from "ws";
+import { WebSocket, WebSocketServer } from "ws";
 import VerifyWebSocketClient from "./middleware/websocket.middleware.js";
 import PresenceService from "./service/presence.service.js";
+import RedisService from "./service/redis.service.js";
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
 const Port = process.env.PORT || 5000;
 const Presence = PresenceService();
+const Redis = RedisService();
 
 const ServerStart = async () => {
     await DbConnect();
@@ -24,7 +26,7 @@ const ServerStart = async () => {
         verifyClient: VerifyWebSocketClient,
     });
 
-    wsServer.on("connection", (socket, request) => {
+    wsServer.on("connection", async (socket, request) => {
         const userId = request.authUserId;
         const userName = request.authUserName;
         console.log("connected userId:", userId, typeof userId);
@@ -32,7 +34,26 @@ const ServerStart = async () => {
 
         Presence.UserConnected(wsServer, socket, userId);
 
-        socket.on("message", (message) => {
+        try {
+            const cursors = await Redis.GetAllCursors();
+            if (socket.readyState === WebSocket.OPEN) {
+                for (const cursor of cursors) {
+                    if (String(cursor.userId) === String(userId)) continue;
+
+                    socket.send(JSON.stringify({
+                        type: "cursor",
+                        userId: String(cursor.userId),
+                        name: cursor.name,
+                        X: cursor.X,
+                        Y: cursor.Y,
+                    }));
+                }
+            }
+        } catch (error) {
+            console.error("Redis cursor restore failed:", error.message);
+        }
+
+        socket.on("message", async (message) => {
             let data;
             try {
                 data = JSON.parse(message.toString());
@@ -52,14 +73,26 @@ const ServerStart = async () => {
                     X,
                     Y,
                 });
+                try {
+                    await Redis.SaveCursor({ userId, name: userName, X, Y });
+                } catch (error) {
+                    console.error("Redis cursor save failed:", error.message);
+                }
                 return;
             }
 
             Presence.BroadcastMessage(wsServer, userId, message.toString());
         });
 
-        socket.on("close", () => {
-            Presence.UserDisconnected(wsServer, socket, userId);
+        socket.on("close", async () => {
+            const lastConnection = Presence.UserDisconnected(wsServer, socket, userId);
+            if (lastConnection) {
+                try {
+                    await Redis.RemoveCursor(userId);
+                } catch (error) {
+                    console.error("Redis cursor delete failed:", error.message);
+                }
+            }
         });
 
         socket.on("error", (error) => {
@@ -68,6 +101,8 @@ const ServerStart = async () => {
     });
 };
 
-ServerStart().catch((error) => {
+try {
+    await ServerStart();
+} catch (error) {
     console.error("Error starting server:", error.message);
-});
+}
