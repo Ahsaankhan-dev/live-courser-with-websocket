@@ -8,4 +8,6 @@ node_modules/
 .DS_Store
 
 # debug logs
-npm-debug.log*
+npm-debug.log
+backend.log
+cookies.txt
