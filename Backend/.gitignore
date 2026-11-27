@@ -9,5 +9,7 @@ node_modules/
 
 # debug logs
 npm-debug.log
+
 backend.log
 cookies.txt
+cookies2.txt
