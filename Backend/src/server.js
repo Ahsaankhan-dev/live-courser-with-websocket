@@ -6,6 +6,7 @@ import { WebSocket, WebSocketServer } from "ws";
 import VerifyWebSocketClient from "./middleware/websocket.middleware.js";
 import PresenceService from "./service/presence.service.js";
 import RedisService from "./service/redis.service.js";
+import RedisConnect from "./config/RedisConnect.js";
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
@@ -16,6 +17,11 @@ const Redis = RedisService();
 const ServerStart = async () => {
     await DbConnect();
 
+    try {
+        RedisConnect();
+    } catch (error) {
+        console.error("Error connecting to Redis:", error.message);
+    }
 
     const server = app.listen(Port, () => {
         console.log(`Server is running on port ${Port}`);
